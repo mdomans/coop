@@ -22,18 +22,24 @@ class IntervalEvent(TimeEvent):
 class FDEvent(object):
     def __init__(self, fd, events, callback):
         self.fd = fd
-        self.callback = callback
+        self._cb = callback
         self.events = events
         
     def install(self, reactor):
-        self._io = pyev.Io(self.fd, self.events, reactor._loop, self.callback, 0)
+        self._io = pyev.Io(self.fd, self.events, reactor._loop, self._cb, 0)
         self._io.start()
         
-class ReadEvent(FDEvent):
-    def __init__(self, fd, callback):
-        super(FDEvent, self).__init__(self, fd, pyev.EV_READ, callback)
+    def _call(self, watcher, data):
+        if self._cb: self._cb(watcher, data)
+        self._io.stop()
         
+class ReadEvent(FDEvent):
+    def __init__(self, fd, callback=None):
+        FDEvent.__init__(self, fd, pyev.EV_READ, callback)
         
 class WriteEvent(FDEvent):
     def __init__(self, fd, callback):
-        super(FDEvent, self).__init__(self, fd, pyev.EV_WRITE, callback)
+        FDEvent, self.__init__(self, fd, pyev.EV_WRITE, callback)
+        
+        
+    
